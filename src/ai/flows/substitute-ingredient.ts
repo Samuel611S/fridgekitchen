@@ -70,14 +70,14 @@ const prompt = ai.definePrompt({
         ),
     }),
   },
-  prompt: `You are a chef helping a user find a substitute for an ingredient in a recipe.
+  prompt: `أنت شيف تساعد المستخدم في العثور على بديل لمكون في الوصفة.
 
-The user is missing the ingredient "{{{originalIngredient}}}" from the recipe "{{{recipeName}}}".
+المستخدم مفقود المكون "{{{originalIngredient}}}" من الوصفة "{{{recipeName}}}".
 
-The user has the following ingredients available: {{{availableIngredients}}}.
+المستخدم لديه المكونات التالية المتاحة: {{{availableIngredients}}}.
 
-Suggest substitutes for the missing ingredient, considering the recipe and the available ingredients.
-Explain your reasoning for each suggested substitute.`,
+اقترح بدائل للمكون المفقود، مع الأخذ في الاعتبار الوصفة والمكونات المتاحة.
+اشرح أسبابك لكل بديل مقترح.`,
 });
 
 const substituteIngredientFlow = ai.defineFlow<

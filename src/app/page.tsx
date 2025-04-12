@@ -1,4 +1,3 @@
-
 'use client';
 
 import {useState} from 'react';
@@ -104,7 +103,7 @@ export default function Home() {
       <h1 className="text-3xl font-bold mb-4 text-primary">FridgeChef</h1>
       <Input
         type="text"
-        placeholder="Enter ingredients separated by commas"
+        placeholder="أدخل المكونات مفصولة بفواصل"
         className="w-full max-w-md mb-2"
         value={ingredients}
         onChange={handleIngredientChange}
@@ -113,31 +112,31 @@ export default function Home() {
         {loading ? (
           <>
             <Icons.spinner className="mr-2 h-4 w-4 animate-spin"/>
-            Suggesting...
+            جاري الاقتراح...
           </>
         ) : (
-          'Suggest Recipes'
+          'اقتراح وصفات'
         )}
       </Button>
 
       {recipes && recipes.recipes.length > 0 ? (
         <div className="mt-4 w-full max-w-4xl">
-          <h2 className="text-2xl font-semibold mb-2 text-primary">Suggested Recipes</h2>
+          <h2 className="text-2xl font-semibold mb-2 text-primary">الوصفات المقترحة</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {recipes.recipes.map((recipe, index) => (
               <Card key={index} className="shadow-md">
                 <CardHeader>
                   <CardTitle>{recipe.name}</CardTitle>
-                  <CardDescription>Easy to follow recipe</CardDescription>
+                  <CardDescription>وصفة سهلة الاتباع</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <h3 className="text-lg font-semibold mb-1">Ingredients:</h3>
+                  <h3 className="text-lg font-semibold mb-1">المكونات:</h3>
                   <ul className="list-disc list-inside mb-2">
                     {recipe.ingredients.map((ingredient, i) => (
                       <li key={i}>{ingredient}</li>
                     ))}
                   </ul>
-                  <h3 className="text-lg font-semibold mb-1">Instructions:</h3>
+                  <h3 className="text-lg font-semibold mb-1">التعليمات:</h3>
                   <Textarea
                     value={recipe.instructions}
                     readOnly
@@ -148,7 +147,7 @@ export default function Home() {
                     onClick={() => handleOpenSubstituteDialog(recipe)}
                     className="mt-2 w-full"
                   >
-                    Substitute Ingredient
+                    استبدال المكون
                   </Button>
                 </CardContent>
               </Card>
@@ -156,24 +155,24 @@ export default function Home() {
           </div>
         </div>
       ) : recipes ? (
-        <div className="mt-4">No recipes found for the given ingredients.</div>
+        <div className="mt-4">لم يتم العثور على وصفات للمكونات المحددة.</div>
       ) : null}
 
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogTrigger asChild>
-          <Button variant="outline">Edit Preferences</Button>
+          <Button variant="outline">تعديل التفضيلات</Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Ingredient Substitution</AlertDialogTitle>
+            <AlertDialogTitle>استبدال المكون</AlertDialogTitle>
             <AlertDialogDescription>
-              Enter the ingredient you want to substitute and the available ingredients.
+              أدخل المكون الذي تريد استبداله والمكونات المتاحة.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <label htmlFor="name" className="text-right font-medium">
-                Original Ingredient
+                المكون الأصلي
               </label>
               <Input
                 id="originalIngredient"
@@ -189,7 +188,7 @@ export default function Home() {
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <label htmlFor="username" className="text-right font-medium">
-                Available Ingredients
+                المكونات المتاحة
               </label>
               <Input
                 id="availableIngredients"
@@ -205,15 +204,15 @@ export default function Home() {
             </div>
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction onClick={handleSubstituteIngredient} disabled={substituteIngredientLoading}>
               {substituteIngredientLoading ? (
                 <>
                   <Icons.spinner className="mr-2 h-4 w-4 animate-spin"/>
-                  Substituting...
+                  جاري الاستبدال...
                 </>
               ) : (
-                'Substitute'
+                'استبدال'
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -223,13 +222,13 @@ export default function Home() {
       {substitutionResults && (
         <Card className="mt-4 w-full max-w-md">
           <CardHeader>
-            <CardTitle>Substitution Results</CardTitle>
-            <CardDescription>Suggested substitutes and reasoning</CardDescription>
+            <CardTitle>نتائج الاستبدال</CardTitle>
+            <CardDescription>البدائل المقترحة والأسباب</CardDescription>
           </CardHeader>
           <CardContent>
             {substitutionResults.suggestedSubstitutes.length > 0 ? (
               <>
-                <h3 className="text-lg font-semibold mb-1">Suggested Substitutes:</h3>
+                <h3 className="text-lg font-semibold mb-1">البدائل المقترحة:</h3>
                 <ul className="list-disc list-inside mb-2">
                   {substitutionResults.suggestedSubstitutes.map((substitute, i) => (
                     <li key={i}>{substitute}</li>
@@ -237,9 +236,9 @@ export default function Home() {
                 </ul>
               </>
             ) : (
-              <p>No suitable substitutes found.</p>
+              <p>لم يتم العثور على بدائل مناسبة.</p>
             )}
-            <h3 className="text-lg font-semibold mb-1">Reasoning:</h3>
+            <h3 className="text-lg font-semibold mb-1">الأسباب:</h3>
             <Textarea value={substitutionResults.reasoning} readOnly className="min-h-[80px] resize-none"/>
           </CardContent>
         </Card>

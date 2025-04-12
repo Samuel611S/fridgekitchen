@@ -54,17 +54,17 @@ const prompt = ai.definePrompt({
       ).describe('A list of suggested recipes based on the available ingredients.'),
     }),
   },
-  prompt: `You are a recipe suggestion AI. A user will provide you with a list of ingredients they have available, and you will suggest recipes that can be made with those ingredients.
+  prompt: `أنت مساعد اقتراحات وصفات. سيزودك المستخدم بقائمة بالمكونات المتوفرة لديه، وسوف تقترح وصفات يمكن تحضيرها بهذه المكونات.
 
-  Available Ingredients:
+  المكونات المتوفرة:
   {{#each ingredients}}
   - {{{this}}}
   {{/each}}
 
-  Suggest recipes that primarily use the ingredients provided, but can also include common ingredients that most people have (e.g. salt, pepper, oil).
-  Recipes should be easy to follow.
-  Format each recipe with a name, list of ingredients, and step-by-step instructions.
-  Return multiple recipe suggestions.
+  اقترح وصفات تستخدم بشكل أساسي المكونات المتوفرة، ولكن يمكن أن تشمل أيضًا المكونات الشائعة المتوفرة لدى معظم الناس (مثل الملح والفلفل والزيت).
+  يجب أن تكون الوصفات سهلة الاتباع.
+  قم بتنسيق كل وصفة بالاسم وقائمة المكونات والتعليمات خطوة بخطوة.
+  أرجع اقتراحات متعددة للوصفات.
   `,
 });
 
@@ -79,4 +79,5 @@ const suggestRecipesFlow = ai.defineFlow<
   const {output} = await prompt(input);
   return output!;
 });
+
 
