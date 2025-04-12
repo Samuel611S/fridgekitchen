@@ -1,6 +1,6 @@
 'use client';
 
-import {useState} from 'react';
+import {useState, createContext, useContext} from 'react';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
@@ -25,6 +25,11 @@ import {
 } from '@/ai/flows/substitute-ingredient';
 import {suggestRecipes, SuggestRecipesInput, SuggestRecipesOutput} from '@/ai/flows/suggest-recipes';
 
+const LanguageContext = createContext({
+  language: 'en',
+  setLanguage: (language: string) => {},
+});
+
 export default function Home() {
   const [ingredients, setIngredients] = useState('');
   const [recipes, setRecipes] = useState<SuggestRecipesOutput | null>(null);
@@ -38,6 +43,7 @@ export default function Home() {
   const [substituteIngredientLoading, setSubstituteIngredientLoading] = useState(false);
   const [substitutionResults, setSubstitutionResults] = useState<any | null>(null);
   const [open, setOpen] = useState(false)
+  const {language, setLanguage} = useLanguage();
 
   const handleIngredientChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIngredients(e.target.value);
@@ -47,7 +53,7 @@ export default function Home() {
     setLoading(true);
     try {
       const ingredientsArray = ingredients.split(',').map(item => item.trim());
-      const input: SuggestRecipesInput = {ingredients: ingredientsArray};
+      const input: SuggestRecipesInput = {ingredients: ingredientsArray, language};
       const recipeSuggestions = await suggestRecipes(input);
       setRecipes(recipeSuggestions);
     } catch (error: any) {
@@ -71,6 +77,7 @@ export default function Home() {
         recipeName: substituteIngredientInput.recipeName,
         originalIngredient: substituteIngredientInput.originalIngredient,
         availableIngredients: availableIngredientsArray,
+        language,
       };
       const substitution = await substituteIngredient(input);
       setSubstitutionResults(substitution);
@@ -101,9 +108,16 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center justify-start min-h-screen p-4 bg-background">
       <h1 className="text-3xl font-bold mb-4 text-primary">FridgeChef</h1>
+
+      <div className="mb-4">
+        <Button onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}>
+          {language === 'en' ? 'Switch to Arabic' : 'Switch to English'}
+        </Button>
+      </div>
+
       <Input
         type="text"
-        placeholder="أدخل المكونات مفصولة بفواصل"
+        placeholder={language === 'en' ? "Enter ingredients separated by commas" : "أدخل المكونات مفصولة بفواصل"}
         className="w-full max-w-md mb-2"
         value={ingredients}
         onChange={handleIngredientChange}
@@ -112,31 +126,31 @@ export default function Home() {
         {loading ? (
           <>
             <Icons.spinner className="mr-2 h-4 w-4 animate-spin"/>
-            جاري الاقتراح...
+            {language === 'en' ? 'Suggesting...' : 'جاري الاقتراح...'}
           </>
         ) : (
-          'اقتراح وصفات'
+          language === 'en' ? 'Suggest Recipes' : 'اقتراح وصفات'
         )}
       </Button>
 
       {recipes && recipes.recipes.length > 0 ? (
         <div className="mt-4 w-full max-w-4xl">
-          <h2 className="text-2xl font-semibold mb-2 text-primary">الوصفات المقترحة</h2>
+          <h2 className="text-2xl font-semibold mb-2 text-primary">{language === 'en' ? 'Suggested Recipes' : 'الوصفات المقترحة'}</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {recipes.recipes.map((recipe, index) => (
               <Card key={index} className="shadow-md">
                 <CardHeader>
                   <CardTitle>{recipe.name}</CardTitle>
-                  <CardDescription>وصفة سهلة الاتباع</CardDescription>
+                  <CardDescription>{language === 'en' ? 'Easy to follow recipe' : 'وصفة سهلة الاتباع'}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <h3 className="text-lg font-semibold mb-1">المكونات:</h3>
+                  <h3 className="text-lg font-semibold mb-1">{language === 'en' ? 'Ingredients:' : 'المكونات:'}</h3>
                   <ul className="list-disc list-inside mb-2">
                     {recipe.ingredients.map((ingredient, i) => (
                       <li key={i}>{ingredient}</li>
                     ))}
                   </ul>
-                  <h3 className="text-lg font-semibold mb-1">التعليمات:</h3>
+                  <h3 className="text-lg font-semibold mb-1">{language === 'en' ? 'Instructions:' : 'التعليمات:'}</h3>
                   <Textarea
                     value={recipe.instructions}
                     readOnly
@@ -147,7 +161,7 @@ export default function Home() {
                     onClick={() => handleOpenSubstituteDialog(recipe)}
                     className="mt-2 w-full"
                   >
-                    استبدال المكون
+                    {language === 'en' ? 'Substitute Ingredient' : 'استبدال المكون'}
                   </Button>
                 </CardContent>
               </Card>
@@ -155,24 +169,26 @@ export default function Home() {
           </div>
         </div>
       ) : recipes ? (
-        <div className="mt-4">لم يتم العثور على وصفات للمكونات المحددة.</div>
+        <div className="mt-4">{language === 'en' ? 'No recipes found for the given ingredients.' : 'لم يتم العثور على وصفات للمكونات المحددة.'}</div>
       ) : null}
 
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogTrigger asChild>
-          <Button variant="outline">تعديل التفضيلات</Button>
+          <Button variant="outline">{language === 'en' ? 'Edit Preferences' : 'تعديل التفضيلات'}</Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>استبدال المكون</AlertDialogTitle>
+            <AlertDialogTitle>{language === 'en' ? 'Substitute Ingredient' : 'استبدال المكون'}</AlertDialogTitle>
             <AlertDialogDescription>
-              أدخل المكون الذي تريد استبداله والمكونات المتاحة.
+              {language === 'en'
+                ? 'Enter the ingredient you want to substitute and the available ingredients.'
+                : 'أدخل المكون الذي تريد استبداله والمكونات المتاحة.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <label htmlFor="name" className="text-right font-medium">
-                المكون الأصلي
+                {language === 'en' ? 'Original Ingredient' : 'المكون الأصلي'}
               </label>
               <Input
                 id="originalIngredient"
@@ -188,7 +204,7 @@ export default function Home() {
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <label htmlFor="username" className="text-right font-medium">
-                المكونات المتاحة
+                {language === 'en' ? 'Available Ingredients' : 'المكونات المتاحة'}
               </label>
               <Input
                 id="availableIngredients"
@@ -204,15 +220,15 @@ export default function Home() {
             </div>
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogCancel>{language === 'en' ? 'Cancel' : 'إلغاء'}</AlertDialogCancel>
             <AlertDialogAction onClick={handleSubstituteIngredient} disabled={substituteIngredientLoading}>
               {substituteIngredientLoading ? (
                 <>
                   <Icons.spinner className="mr-2 h-4 w-4 animate-spin"/>
-                  جاري الاستبدال...
+                  {language === 'en' ? 'Substituting...' : 'جاري الاستبدال...'}
                 </>
               ) : (
-                'استبدال'
+                language === 'en' ? 'Substitute' : 'استبدال'
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -222,13 +238,13 @@ export default function Home() {
       {substitutionResults && (
         <Card className="mt-4 w-full max-w-md">
           <CardHeader>
-            <CardTitle>نتائج الاستبدال</CardTitle>
-            <CardDescription>البدائل المقترحة والأسباب</CardDescription>
+            <CardTitle>{language === 'en' ? 'Substitution Results' : 'نتائج الاستبدال'}</CardTitle>
+            <CardDescription>{language === 'en' ? 'Suggested substitutes and reasons' : 'البدائل المقترحة والأسباب'}</CardDescription>
           </CardHeader>
           <CardContent>
             {substitutionResults.suggestedSubstitutes.length > 0 ? (
               <>
-                <h3 className="text-lg font-semibold mb-1">البدائل المقترحة:</h3>
+                <h3 className="text-lg font-semibold mb-1">{language === 'en' ? 'Suggested Substitutes:' : 'البدائل المقترحة:'}</h3>
                 <ul className="list-disc list-inside mb-2">
                   {substitutionResults.suggestedSubstitutes.map((substitute, i) => (
                     <li key={i}>{substitute}</li>
@@ -236,13 +252,22 @@ export default function Home() {
                 </ul>
               </>
             ) : (
-              <p>لم يتم العثور على بدائل مناسبة.</p>
+              <p>{language === 'en' ? 'No suitable substitutes found.' : 'لم يتم العثور على بدائل مناسبة.'}</p>
             )}
-            <h3 className="text-lg font-semibold mb-1">الأسباب:</h3>
+            <h3 className="text-lg font-semibold mb-1">{language === 'en' ? 'Reasons:' : 'الأسباب:'}</h3>
             <Textarea value={substitutionResults.reasoning} readOnly className="min-h-[80px] resize-none"/>
           </CardContent>
         </Card>
       )}
     </div>
   );
+}
+
+function useLanguage() {
+  const [language, setLanguage] = useState<'en' | 'ar'>('en');
+
+  return {
+    language,
+    setLanguage,
+  };
 }

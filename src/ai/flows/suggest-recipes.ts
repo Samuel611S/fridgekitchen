@@ -1,4 +1,3 @@
-// Use server directive is required for Genkit flows.
 'use server';
 
 /**
@@ -10,12 +9,14 @@
  */
 
 import {ai} from '@/ai/ai-instance';
+import {translateText} from '@/ai/translate-tool';
 import {z} from 'genkit';
 
 const SuggestRecipesInputSchema = z.object({
   ingredients: z
     .array(z.string())
     .describe('A list of ingredients the user has available.'),
+  language: z.enum(['en', 'ar']).default('en').describe('The language to use for the recipe suggestions.'),
 });
 export type SuggestRecipesInput = z.infer<typeof SuggestRecipesInputSchema>;
 
@@ -54,17 +55,17 @@ const prompt = ai.definePrompt({
       ).describe('A list of suggested recipes based on the available ingredients.'),
     }),
   },
-  prompt: `أنت مساعد اقتراحات وصفات. سيزودك المستخدم بقائمة بالمكونات المتوفرة لديه، وسوف تقترح وصفات يمكن تحضيرها بهذه المكونات.
+  prompt: `You are a recipe suggestion assistant. The user will provide you with a list of ingredients they have available, and you will suggest recipes that can be made with those ingredients.
 
-  المكونات المتوفرة:
+  Available ingredients:
   {{#each ingredients}}
   - {{{this}}}
   {{/each}}
 
-  اقترح وصفات تستخدم بشكل أساسي المكونات المتوفرة، ولكن يمكن أن تشمل أيضًا المكونات الشائعة المتوفرة لدى معظم الناس (مثل الملح والفلفل والزيت).
-  يجب أن تكون الوصفات سهلة الاتباع.
-  قم بتنسيق كل وصفة بالاسم وقائمة المكونات والتعليمات خطوة بخطوة.
-  أرجع اقتراحات متعددة للوصفات.
+  Suggest recipes that primarily use the available ingredients, but may also include common ingredients that most people have (such as salt, pepper, oil).
+  The recipes should be easy to follow.
+  Format each recipe with the name, a list of ingredients, and step-by-step instructions.
+  Return multiple recipe suggestions.
   `,
 });
 
@@ -76,8 +77,21 @@ const suggestRecipesFlow = ai.defineFlow<
   inputSchema: SuggestRecipesInputSchema,
   outputSchema: SuggestRecipesOutputSchema,
 }, async input => {
-  const {output} = await prompt(input);
+  const {language, ...rest} = input;
+
+  let translatedPrompt = prompt;
+  if (language === 'ar') {
+    const translatedPromptText = await translateText({
+      targetLanguage: 'ar',
+      text: prompt.prompt,
+    });
+    translatedPrompt = ai.definePrompt({
+      name: 'suggestRecipesPromptAr',
+      input: prompt.input,
+      output: prompt.output,
+      prompt: translatedPromptText,
+    });
+  }
+  const {output} = await translatedPrompt(rest);
   return output!;
 });
-
-

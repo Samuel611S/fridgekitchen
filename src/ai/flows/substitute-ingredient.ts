@@ -6,10 +6,11 @@
  *
  * - substituteIngredient - A function that suggests ingredient substitutions.
  * - SubstituteIngredientInput - The input type for the substituteIngredient function.
- * - SubstituteIngredientOutput - The return type for the substituteIngredient function.
+ * - SubstituteIngredientOutput - The return type for the SubstituteIngredient function.
  */
 
 import {ai} from '@/ai/ai-instance';
+import {translateText} from '@/ai/translate-tool';
 import {z} from 'genkit';
 
 const SubstituteIngredientInputSchema = z.object({
@@ -19,6 +20,7 @@ const SubstituteIngredientInputSchema = z.object({
     .string()
     .array()
     .describe('The ingredients that the user has available.'),
+  language: z.enum(['en', 'ar']).default('en').describe('The language to use for the recipe suggestions.'),
 });
 export type SubstituteIngredientInput = z.infer<
   typeof SubstituteIngredientInputSchema
@@ -70,14 +72,14 @@ const prompt = ai.definePrompt({
         ),
     }),
   },
-  prompt: `أنت شيف تساعد المستخدم في العثور على بديل لمكون في الوصفة.
+  prompt: `You are a chef helping a user find a substitute for an ingredient in a recipe.
 
-المستخدم مفقود المكون "{{{originalIngredient}}}" من الوصفة "{{{recipeName}}}".
+The user is missing the ingredient "{{{originalIngredient}}}" from the recipe "{{{recipeName}}}".
 
-المستخدم لديه المكونات التالية المتاحة: {{{availableIngredients}}}.
+The user has the following ingredients available: {{{availableIngredients}}}.
 
-اقترح بدائل للمكون المفقود، مع الأخذ في الاعتبار الوصفة والمكونات المتاحة.
-اشرح أسبابك لكل بديل مقترح.`,
+Suggest substitutes for the missing ingredient, taking into account the recipe and available ingredients.
+Explain your reasoning for each suggested substitute.`,
 });
 
 const substituteIngredientFlow = ai.defineFlow<
@@ -89,7 +91,21 @@ const substituteIngredientFlow = ai.defineFlow<
   outputSchema: SubstituteIngredientOutputSchema,
 },
   async input => {
-    const {output} = await prompt(input);
+    const {language, ...rest} = input;
+    let translatedPrompt = prompt;
+    if (language === 'ar') {
+      const translatedPromptText = await translateText({
+        targetLanguage: 'ar',
+        text: prompt.prompt,
+      });
+      translatedPrompt = ai.definePrompt({
+        name: 'substituteIngredientPromptAr',
+        input: prompt.input,
+        output: prompt.output,
+        prompt: translatedPromptText,
+      });
+    }
+    const {output} = await translatedPrompt(rest);
     return output!;
   }
 );
